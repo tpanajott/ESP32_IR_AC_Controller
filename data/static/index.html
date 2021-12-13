@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <title>AC IR MQTT</title>
+    <link rel="stylesheet" href="/static/css/bulma.min.css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/utils.js"></script>
+
+    <style>
+      .loading {
+      animation-name: ckw;
+      animation-duration: 2s;
+      /* Things added */
+      animation-iteration-count: infinite;
+      transform-origin: 50% 50%;
+      display: inline-block;
+      /* <--- */
+      }
+      @keyframes ckw {
+          0% {
+              transform: rotate(0deg);
+          }
+          100% {
+              transform: rotate(360deg);
+          }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="modal" id="learn_from_remote_modal" style="display: hidden;">
+      <div class="modal-background" onclick="stopLearningFromRemote();"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Learn from remote</p>
+          <button class="delete" aria-label="cancel" onclick="stopLearningFromRemote();"></button>
+        </header>
+        <section class="modal-card-body">
+          <center>
+            <div class="loading">
+              <svg style="width:64px;height:64px" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z" />
+              </svg>
+            </div>
+            <h2 class="subtitle">Aim the remote at the IR sensor on the device and push a button on the remote.</h2>
+          </center>
+        </section>
+        <footer class="modal-card-foot">
+          <button class="button is-danger" onclick="stopLearningFromRemote();">Cancel</button>
+        </footer>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="container">
+        <h1 class="title">
+          IR AC Controller over MQTT
+        </h1>
+        <h2 class="subtitle" id="firmware_version">
+            Build version: ?
+        </h2>
+      </div>
+      <br>
+      <div class="container">
+        <div class="box">
+          <div class="field is-grouped">
+            <div class="control">
+              <button class="button is-info" id="learn_from_remote_button" onclick="learnFromRemote()">
+                <span class="icon">
+                  <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M12,0C8.96,0 6.21,1.23 4.22,3.22L5.63,4.63C7.26,3 9.5,2 12,2C14.5,2 16.74,3 18.36,4.64L19.77,3.23C17.79,1.23 15.04,0 12,0M7.05,6.05L8.46,7.46C9.37,6.56 10.62,6 12,6C13.38,6 14.63,6.56 15.54,7.46L16.95,6.05C15.68,4.78 13.93,4 12,4C10.07,4 8.32,4.78 7.05,6.05M12,15A2,2 0 0,1 10,13A2,2 0 0,1 12,11A2,2 0 0,1 14,13A2,2 0 0,1 12,15M15,9H9A1,1 0 0,0 8,10V22A1,1 0 0,0 9,23H15A1,1 0 0,0 16,22V10A1,1 0 0,0 15,9Z" />
+                  </svg>
+                </span>
+                <span>Learn from remote</span>
+              </button>
+            </div>
+            <div class="control">
+              <button class="button is-info" onclick="window.location.href = '/configure';">
+                <span class="icon">
+                  <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+                  </svg>
+                </span>
+                <span>Configuration</span>
+              </button>
+            </div>
+            <div class="control">
+              <button class="button is-info" onclick="window.location.href = '/update';">
+                <span class="icon">
+                  <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M2 12C2 16.97 6.03 21 11 21C13.39 21 15.68 20.06 17.4 18.4L15.9 16.9C14.63 18.25 12.86 19 11 19C4.76 19 1.64 11.46 6.05 7.05C10.46 2.64 18 5.77 18 12H15L19 16H19.1L23 12H20C20 7.03 15.97 3 11 3C6.03 3 2 7.03 2 12Z" />
+                  </svg>
+                </span>
+                <span>Firmware Update</span>
+              </button>
+            </div>
+          </div>
+          <div class="field is-grouped is-grouped-multiline">
+            <div class="control">
+              <div class="tags has-addons">
+                <span class="tag is-dark">
+                  <span>
+                    <svg style="width:12px;height:12px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M21.4 7.5C22.2 8.3 22.2 9.6 21.4 10.3L18.6 13.1L10.8 5.3L13.6 2.5C14.4 1.7 15.7 1.7 16.4 2.5L18.2 4.3L21.2 1.3L22.6 2.7L19.6 5.7L21.4 7.5M15.6 13.3L14.2 11.9L11.4 14.7L9.3 12.6L12.1 9.8L10.7 8.4L7.9 11.2L6.4 9.8L3.6 12.6C2.8 13.4 2.8 14.7 3.6 15.4L5.4 17.2L1.4 21.2L2.8 22.6L6.8 18.6L8.6 20.4C9.4 21.2 10.7 21.2 11.4 20.4L14.2 17.6L12.8 16.2L15.6 13.3Z" />
+                    </svg>
+                  </span>
+                  <span style="padding-left: .25rem;">Connection</span>
+                </span>
+                <span class="tag" id="device_connection_status_tag">?</span>
+              </div>
+            </div>
+          
+            <div class="control">
+              <div class="tags has-addons">
+                <span class="tag is-dark">
+                  <span>
+                    <svg style="width:12px;height:12px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M21.4 7.5C22.2 8.3 22.2 9.6 21.4 10.3L18.6 13.1L10.8 5.3L13.6 2.5C14.4 1.7 15.7 1.7 16.4 2.5L18.2 4.3L21.2 1.3L22.6 2.7L19.6 5.7L21.4 7.5M15.6 13.3L14.2 11.9L11.4 14.7L9.3 12.6L12.1 9.8L10.7 8.4L7.9 11.2L6.4 9.8L3.6 12.6C2.8 13.4 2.8 14.7 3.6 15.4L5.4 17.2L1.4 21.2L2.8 22.6L6.8 18.6L8.6 20.4C9.4 21.2 10.7 21.2 11.4 20.4L14.2 17.6L12.8 16.2L15.6 13.3Z" />
+                    </svg>
+                  </span>
+                  <span style="padding-left: .25rem;">MQTT</span>
+                </span>
+                <span class="tag" id="mqtt_status_tag">?</span>
+              </div>
+            </div>
+          
+            <div class="control">
+              <div class="tags has-addons">
+                <span class="tag is-dark">
+                  <span>
+                    <svg style="width:12px;height:12px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12,21L15.6,16.2C14.6,15.45 13.35,15 12,15C10.65,15 9.4,15.45 8.4,16.2L12,21M12,3C7.95,3 4.21,4.34 1.2,6.6L3,9C5.5,7.12 8.62,6 12,6C15.38,6 18.5,7.12 21,9L22.8,6.6C19.79,4.34 16.05,3 12,3M12,9C9.3,9 6.81,9.89 4.8,11.4L6.6,13.8C8.1,12.67 9.97,12 12,12C14.03,12 15.9,12.67 17.4,13.8L19.2,11.4C17.19,9.89 14.7,9 12,9Z" />
+                    </svg>
+                  </span>
+                  <span style="padding-left: .25rem;">WiFi</span>
+                </span>
+                <span class="tag" id="wifi_status_tag">?</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <br>
+      <div class="container">
+        <div class="box">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Value</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Protocol</th>
+                <td id="ac_protocol"></td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <th>Model</th>
+                <td id="ac_model"></td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <th>Mode</th>
+                <td id="ac_mode"></td>
+                <td><a class="button is-danger" onclick="act('mode', '-1')">Off</a> <a class="button is-success" onclick="act('mode', '0')">Auto</a> <a class="button is-info" onclick="act('mode', '1')">Cool</a> <a class="button is-info" onclick="act('mode', '2')">Heat</a> <a class="button is-info" onclick="act('mode', '3')">Dry</a> <a class="button is-info" onclick="act('mode', '4')">Fan</a></td>
+              </tr>
+              <tr>
+                <th>Celcius</th>
+                <td id="ac_celsius"></td>
+                <td><a class="button is-info" onclick="act('celsius', '1')">Toggle</a></td>
+              </tr>
+              <tr>
+                <th>Degrees</th>
+                <td id="ac_degrees"></td>
+                <td><a class="button is-danger" onclick="act('degrees', '-1')">-</a> <a class="button is-success" onclick="act('degrees', '1')">+</a></td>
+              </tr>
+              <tr>
+                <th>Fan Speed</th>
+                <td id="ac_fanspeed"></td>
+                <td><a class="button is-success" onclick="act('fanspeed', '0')">Auto</a> <a class="button is-info" onclick="act('fanspeed', '5')">Max</a> <a class="button is-info" onclick="act('fanspeed', '4')">High</a> <a class="button is-info" onclick="act('fanspeed', '3')">Medium</a> <a class="button is-info" onclick="act('fanspeed', '2')">Low</a> <a class="button is-info" onclick="act('fanspeed', '1')">min</a></td>
+              </tr>
+              <tr>
+                <th>Swing - Vertical</th>
+                <td id="ac_swingv"></td>
+                <td><a class="button is-danger" onclick="act('swingv', '-1')">Off</a> <a class="button is-success" onclick="act('swingv', '0')">Auto</a> <a class="button is-info" onclick="act('swingv', '1')">Higest</a> <a class="button is-info" onclick="act('swingv', '2')">High</a> <a class="button is-info" onclick="act('swingv', '3')">Middle</a> <a class="button is-info" onclick="act('swingv', '4')">Low</a> <a class="button is-info" onclick="act('swingv', '5')">Lowest</a></td>
+              </tr>
+              <tr>
+                <th>Swing - Horizontal</th>
+                <td id="ac_swingh"></td>
+                <td><a class="button is-danger" onclick="act('swingh', '-1')">Off</a> <a class="button is-success" onclick="act('swingh', '0')">Auto</a> <a class="button is-info" onclick="act('swingh', '1')">Left Max</a> <a class="button is-info" onclick="act('swingh', '2')">Left</a> <a class="button is-info" onclick="act('swingh', '3')">Middle</a> <a class="button is-info" onclick="act('swingh', '4')">Right</a> <a class="button is-info" onclick="act('swingh', '5')">Right Max</a> <a class="button is-info" onclick="act('swingh', '6')">Wide</a></td>
+              </tr>
+              <tr>
+                <th>Light</th>
+                <td id="ac_light"></td>
+                <td><a class="button is-info" onclick="act('light', '1')">Toggle</a></td>
+              </tr>
+              <tr>
+                <th>Beep</th>
+                <td id="ac_beep"></td>
+                <td><a class="button is-info" onclick="act('beep', '1')">Toggle</a></td>
+              </tr>
+              <tr>
+                <th>Economy Mode</th>
+                <td id="ac_econo"></td>
+                <td><a class="button is-info" onclick="act('econo', '1')">Toggle</a></td>
+              </tr>
+              <tr>
+                <th>Filter</th>
+                <td id="ac_filter"></td>
+                <td><a class="button is-info" onclick="act('filter', '1')">Toggle</a></td>
+              </tr>
+              <tr>
+                <th>Turbo</th>
+                <td id="ac_turbo"></td>
+                <td><a class="button is-info" onclick="act('turbo', '1')">Toggle</a></td>
+              </tr>
+              <tr>
+                <th>Quiet</th>
+                <td id="ac_quiet"></td>
+                <td><a class="button is-info" onclick="act('quiet', '1')">Toggle</a></td>
+              </tr>
+              <tr>
+                <th>Cleaning</th>
+                <td id="ac_clean"></td>
+                <td><a class="button is-info" onclick="act('clean', '1')">Toggle</a></td>
+              </tr>
+              <tr>
+                <th>Power</th>
+                <td id="ac_power"></td>
+                <td><a class="button is-danger" onclick="act('power', '0')">Off</a> <a class="button is-success" onclick="act('power', '1')">On</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <title>AC IR MQTT - Firmware update</title>
+    <link rel="stylesheet" href="/static/css/bulma.min.css">
+    <style>
+      .loading {
+      animation-name: ckw;
+      animation-duration: 2s;
+      /* Things added */
+      animation-iteration-count: infinite;
+      transform-origin: 50% 50%;
+      display: inline-block;
+      /* <--- */
+      }
+      @keyframes ckw {
+          0% {
+              transform: rotate(0deg);
+          }
+          100% {
+              transform: rotate(360deg);
+          }
+      }
+    </style>
+
+    <script src="/static/js/jquery.min.js"></script>
+    <script>
+        function onFileSelected() {
+            var file_name = $('#firmware_file').prop('files')[0]["name"];
+            $("#file_name").html(file_name);
+        }
+
+        jQuery(document).ready(function(){  
+            $('#firmware_file').change(onFileSelected);
+
+            // Show modal when update begins.
+            $("#update_form").submit(function(data) {
+              $("#update_modal").addClass("is-active");
+            });
+        });
+    </script>
+  </head>
+  <body>
+    <div class="modal" id="update_modal" style="display: hidden;">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Updating</p>
+        </header>
+        <section class="modal-card-body">
+          <center>
+            <div class="loading">
+              <svg style="width:64px;height:64px" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z" />
+              </svg>
+            </div>
+            <h2 class="subtitle">You will automatically be redirected once the update is done.</h2>
+          </center>
+        </section>
+        <footer class="modal-card-foot"></footer>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="container">
+        <h1 class="title">
+          Firmware Update
+        </h1>
+      </div>
+      <br>
+      <div class="container">
+        <form method="POST" action="/update" id="update_form" enctype='multipart/form-data'>
+          <div class="box">
+            <div class="field">
+              <label class="label">Firmware file</label>
+              <div class="control">
+                <div class="file has-name is-fullwidth is-info">
+                  <label class="file-label">
+                    <input class="file-input" type="file" accept=".bin" id="firmware_file" name="firmware_file" required>
+                    <span class="file-cta">
+                        <span class="file-icon">
+                            <svg style="width:24px;height:24px" viewBox="4 4 16 16">
+                                <path fill="currentColor" d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" />
+                            </svg>
+                        </span>
+                        <span class="file-label">Choose a file…</span>
+                    </span>
+                    <span class="file-name" id="file_name"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+            
+          <div class="box">
+            <div class="field is-grouped">
+              <div class="control">
+                <button type="submit" class="button is-success">
+                    <span class="icon">
+                        <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M2 12C2 16.97 6.03 21 11 21C13.39 21 15.68 20.06 17.4 18.4L15.9 16.9C14.63 18.25 12.86 19 11 19C4.76 19 1.64 11.46 6.05 7.05C10.46 2.64 18 5.77 18 12H15L19 16H19.1L23 12H20C20 7.03 15.97 3 11 3C6.03 3 2 7.03 2 12Z" />
+                        </svg>
+                    </span>
+                    <span>Update</span>
+                </button>
+              </div>
+              <div class="control">
+                <a href="/" class="button is-link">Back</a>
+              </div>
+            </div>
+          </div>
+      </form>
+      </div>
+    </section>
+  </body>
+</html>

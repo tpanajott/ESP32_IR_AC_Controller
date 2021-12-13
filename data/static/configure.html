@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <title>AC IR MQTT - Configure</title>
+    <link rel="stylesheet" href="/static/css/bulma.min.css">
+    <script src="/static/js/jquery.min.js"></script>
+
+    <style>
+      .hidden {
+        display: none;
+      }
+    </style>
+
+    <script>
+      function showRelevantFields() {
+        if($("#mqtt_auth").is(":checked")) {
+          $(".mqtt_auth_field").removeClass("hidden");
+        } else {
+          $(".mqtt_auth_field").addClass("hidden");
+        }
+      }
+
+      function getQueryParameter(param) {
+          return new URLSearchParams(document.location.search.substring(1)).get(param);
+      }
+
+      jQuery(document).ready(function(){  
+          showRelevantFields();
+          $("#mqtt_auth").change(showRelevantFields);
+          // If the configuration was just saved, we need to restart the ESP
+          console.log(getQueryParameter("saved"));
+          if(getQueryParameter("saved") == "true") {
+              alert("A device reboot is needed to apply the changes.");
+          }
+      });
+    </script>
+  </head>
+  <body>
+    <section class="section">
+      <div class="container">
+        <h1 class="title">
+          Configure IR AC Controller
+        </h1>
+      </div>
+      <br>
+      <div class="container">
+        <form method="POST">
+          <div class="box">
+            <div class="field">
+              <label class="label">Device Name</label>
+              <div class="control">
+                <input class="input" type="text" name="wifi_hostname" value="con01">
+              </div>
+            </div>
+            
+            <div class="field">
+              <label class="label">WiFi SSID</label>
+              <div class="control">
+                <input class="input" type="text" name="wifi_ssid" maxlength="64" value="Panajott">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">WiFi PSK</label>
+              <div class="control">
+                <input class="input" type="password" name="wifi_psk" maxlength="64" value="kbhML3hdXE">
+              </div>
+            </div>
+          </div>
+
+          <div class="box">
+            <div class="field">
+              <label class="label">MQTT Server</label>
+              <div class="control">
+                <input class="input" type="text" name="mqtt_server" maxlength="64" value="10.0.0.2">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">MQTT Port</label>
+              <div class="control">
+                <input class="input" type="number" name="mqtt_port" value="1883">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">MQTT Base Topic</label>
+              <div class="control">
+                <input class="input" type="text" name="mqtt_base_topic" maxlength="64" value="homeassistant/">
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="control">
+                <label class="checkbox">
+                  <input type="checkbox" name="mqtt_auth" id="mqtt_auth" >
+                  Use MQTT username and password
+                </label>
+              </div>
+            </div>
+
+            <div class="field mqtt_auth_field">
+              <label class="label">MQTT Username</label>
+              <div class="control">
+                <input class="input" type="text" name="mqtt_username" maxlength="64" value="">
+              </div>
+            </div>
+
+            <div class="field mqtt_auth_field">
+              <label class="label">MQTT Password</label>
+              <div class="control">
+                <input class="input" type="password" name="mqtt_password" maxlength="64" value="">
+              </div>
+            </div>
+          </div>
+          
+          <div class="box">
+            <div class="field is-grouped">
+              <div class="control">
+                <button type="submit" class="button is-success">Save</button>
+              </div>
+              <div class="control">
+                <a href="/" class="button is-link">Back</a>
+              </div>
+              <div class="control">
+                <a href="/reboot" class="button is-danger">Reboot</a>
+              </div>
+            </div>
+          </div>
+      </form>
+      </div>
+    </section>
+  </body>
+</html>
