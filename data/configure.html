@@ -50,21 +50,21 @@
             <div class="field">
               <label class="label">Device Name</label>
               <div class="control">
-                <input class="input" type="text" name="wifi_hostname" value="con01">
+                <input class="input" type="text" name="wifi_hostname" value="%wifi_hostname%">
               </div>
             </div>
             
             <div class="field">
               <label class="label">WiFi SSID</label>
               <div class="control">
-                <input class="input" type="text" name="wifi_ssid" maxlength="64" value="Panajott">
+                <input class="input" type="text" name="wifi_ssid" maxlength="64" value="%wifi_ssid%">
               </div>
             </div>
 
             <div class="field">
               <label class="label">WiFi PSK</label>
               <div class="control">
-                <input class="input" type="password" name="wifi_psk" maxlength="64" value="kbhML3hdXE">
+                <input class="input" type="password" name="wifi_psk" maxlength="64" value="%wifi_psk%">
               </div>
             </div>
           </div>
@@ -73,28 +73,28 @@
             <div class="field">
               <label class="label">MQTT Server</label>
               <div class="control">
-                <input class="input" type="text" name="mqtt_server" maxlength="64" value="10.0.0.2">
+                <input class="input" type="text" name="mqtt_server" maxlength="64" value="%mqtt_server%">
               </div>
             </div>
 
             <div class="field">
               <label class="label">MQTT Port</label>
               <div class="control">
-                <input class="input" type="number" name="mqtt_port" value="1883">
+                <input class="input" type="number" name="mqtt_port" value="%mqtt_port%">
               </div>
             </div>
 
             <div class="field">
               <label class="label">MQTT Base Topic</label>
               <div class="control">
-                <input class="input" type="text" name="mqtt_base_topic" maxlength="64" value="homeassistant/">
+                <input class="input" type="text" name="mqtt_base_topic" maxlength="64" value="%mqtt_base_topic%">
               </div>
             </div>
 
             <div class="field">
               <div class="control">
                 <label class="checkbox">
-                  <input type="checkbox" name="mqtt_auth" id="mqtt_auth" >
+                  <input type="checkbox" name="mqtt_auth" id="mqtt_auth" %mqtt_auth%>
                   Use MQTT username and password
                 </label>
               </div>
@@ -103,14 +103,14 @@
             <div class="field mqtt_auth_field">
               <label class="label">MQTT Username</label>
               <div class="control">
-                <input class="input" type="text" name="mqtt_username" maxlength="64" value="">
+                <input class="input" type="text" name="mqtt_username" maxlength="64" value="%mqtt_username%">
               </div>
             </div>
 
             <div class="field mqtt_auth_field">
               <label class="label">MQTT Password</label>
               <div class="control">
-                <input class="input" type="password" name="mqtt_password" maxlength="64" value="">
+                <input class="input" type="password" name="mqtt_password" maxlength="64" value="%mqtt_password%">
               </div>
             </div>
           </div>
