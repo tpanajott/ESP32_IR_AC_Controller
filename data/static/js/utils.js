@@ -2,32 +2,23 @@ connected = true;
 
 function updateValues() {
     // Get all AC status data
-    $.getJSON("/status/ac", function(data) {
+    $.getJSON("/status", function(data) {
         $.each(data, function(key, val) {
             $('#' + key).html(val);
         });
-    });
 
-    // Get all other status data
-    $.getJSON("/status/other", function(data) {
-        $("#mqtt_status_tag").attr("class", data["mqtt_status_tag_classes"]);
-        $("#mqtt_status_tag").html(data["mqtt_status_tag_text"]);
-
-        $("#wifi_status_tag").attr("class", data["wifi_status_tag_classes"]);
-        $("#wifi_status_tag").html(data["wifi_status_tag_text"]);
-
-        $("#firmware_version").html(data["firmware_version"]);
-    });
-
-    // Check learning status
-    $.get("/learn/status", function(data) {
-        if(data == 0) {
+        if(data["ac_learning"] == true) {
             // 0 = Learning is inactive.
             $("#learn_from_remote_modal").removeClass("is-active");
         } else if (data == 1) {
             // 1 = Learning is active.
             $("#learn_from_remote_modal").addClass("is-active");
         }
+
+        $("#mqtt_status_tag").attr("class", data["mqtt_status_tag_classes"]);
+        $("#wifi_status_tag").attr("class", data["wifi_status_tag_classes"]);
+
+        // We managed to get a response from the ESP. Connection is ok.
         $("#device_connection_status_tag").attr("class", "tag is-success");
         $("#device_connection_status_tag").html("Connected");
         $(".button").prop("disabled", false);
@@ -42,6 +33,17 @@ function updateValues() {
         $("#wifi_status_tag").html("WiFi: UNKNOWN");
         $(".button").prop("disabled", true);
     });
+
+    // Get all other status data
+    // $.getJSON("/status", function(data) {
+    //     $("#mqtt_status_tag").attr("class", data["mqtt_status_tag_classes"]);
+    //     $("#mqtt_status_tag").html(data["mqtt_status_tag_text"]);
+
+    //     $("#wifi_status_tag").attr("class", data["wifi_status_tag_classes"]);
+    //     $("#wifi_status_tag").html(data["wifi_status_tag_text"]);
+
+    //     $("#firmware_version").html(data["firmware_version"]);
+    // });
 }
 
 function learnFromRemote() {

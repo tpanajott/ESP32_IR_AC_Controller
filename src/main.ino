@@ -4,6 +4,7 @@
 #include "FS.h"
 #include "PubSubClient.h"
 #include <ArduinoJson.h>
+#include <AsyncJson.h>
 #include <IRrecv.h>
 #include <IRremoteESP8266.h>
 #include <IRac.h>
@@ -22,6 +23,10 @@ IRac ac(4); // IR Sender
 
 // Web
 AsyncWebServer server(80);
+AsyncWebSocket updateStatusWebSocket("/update_status");
+
+// Status variables
+bool isLearning = false;
 
 struct ACConfig {
   int ac_protocol;
@@ -132,11 +137,13 @@ void setupACLibrary() {
   irrecv.setTolerance(25);
 }
 
-void startReceivingIR() {
+void startLearning() {
+  isLearning = true;
   irrecv.enableIRIn();
 }
 
-void stopReceivingIR() {
+void stopLearning() {
+  isLearning = false;
   irrecv.disableIRIn();
 }
 
@@ -165,11 +172,213 @@ void connectToWiFi() {
   }
 }
 
+void reconnectToMqtt() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    client.setServer(mqttConfig.server, mqttConfig.port);
+    Serial.println("[MQTT] Attempting to connect...");
+    
+    // Attempt to connect
+    if(mqttConfig.use_auth) {
+      client.connect(wifiConfig.hostname, mqttConfig.username, mqttConfig.password);
+    } else {
+      client.connect(wifiConfig.hostname);
+    }
+
+    if (client.connected()) {
+      Serial.println("[MQTT] Connected");
+      // Once connected, publish an announcement...
+      // client.publish("outTopic", "hello world");
+      // ... and resubscribe
+      // client.subscribe("inTopic");
+    } else {
+      Serial.print("[MQTT] failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+
+void respondCurrentStatus(AsyncWebServerRequest *request) {
+  // Respond with current AC status.
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
+  DynamicJsonDocument doc(1024);
+  // Break out all the easy values, more complex values are handled below
+  doc["ac_protocol"] = typeToString(ac.next.protocol);
+  doc["ac_model"] = ac.next.model;
+  doc["ac_power"] = ac.next.power ? "On" : "Off";
+  doc["ac_degrees"] = ac.next.degrees;
+  doc["ac_celsius"] = ac.next.celsius ? "Celsius" : "Fahrenheit";
+  doc["ac_quiet"] = ac.next.quiet ? "Quiet" : "Normal";
+  doc["ac_turbo"] = ac.next.turbo ? "Turbo" : "Normal";
+  doc["ac_econo"] = ac.next.econo ? "Econo" : "Normal";
+  doc["ac_light"] = ac.next.light ? "Light" : "Dark";
+  doc["ac_filter"] = ac.next.filter ? "Active" : "Inactive";
+  doc["ac_clean"] = ac.next.clean ? "Active" : "Inactive";
+  doc["ac_beep"] = ac.next.beep ? "Beep" : "Silent";
+  doc["ac_learning"] = isLearning;
+
+  // AC Mode status
+  switch (ac.next.mode)
+  {
+    case stdAc::opmode_t::kAuto:
+      doc["ac_mode"] = "Auto";
+      break;
+    case stdAc::opmode_t::kCool:
+      doc["ac_mode"] = "Cool";
+      break;
+    case stdAc::opmode_t::kDry:
+      doc["ac_mode"] = "Dry";
+      break;
+    case stdAc::opmode_t::kFan:
+      doc["ac_mode"] = "Fan";
+      break;
+    case stdAc::opmode_t::kHeat:
+      doc["ac_mode"] = "Heat";
+      break;
+    case stdAc::opmode_t::kOff:
+      doc["ac_mode"] = "Off";
+      break;
+    
+    default:
+      doc["ac_mode"] = "-UNKNOWN-";
+      break;
+  }
+  // AC Fan speed status
+  switch (ac.next.fanspeed)
+  {
+    case stdAc::fanspeed_t::kAuto:
+      doc["ac_fanspeed"] = "Auto";
+      break;
+    case stdAc::fanspeed_t::kMax:
+      doc["ac_fanspeed"] = "Max";
+      break;
+    case stdAc::fanspeed_t::kHigh:
+      doc["ac_fanspeed"] = "High";
+      break;
+    case stdAc::fanspeed_t::kMedium:
+      doc["ac_fanspeed"] = "Medium";
+      break;
+    case stdAc::fanspeed_t::kLow:
+      doc["ac_fanspeed"] = "Low";
+      break;
+    case stdAc::fanspeed_t::kMin:
+      doc["ac_fanspeed"] = "Min";
+      break;
+    
+    default:
+      doc["ac_fanspeed"] = "-UNKNOWN-";
+      break;
+  }
+  // Swing Vertical status
+  switch (ac.next.swingv)
+  {
+    case stdAc::swingv_t::kAuto:
+      doc["ac_swingv"] = "Auto";
+      break;
+    case stdAc::swingv_t::kHighest:
+      doc["ac_swingv"] = "Highest";
+      break;
+    case stdAc::swingv_t::kHigh:
+      doc["ac_swingv"] = "High";
+      break;
+    case stdAc::swingv_t::kMiddle:
+      doc["ac_swingv"] = "Middle";
+      break;
+    case stdAc::swingv_t::kLow:
+      doc["ac_swingv"] = "Low";
+      break;
+    case stdAc::swingv_t::kLowest:
+      doc["ac_swingv"] = "Lowest";
+      break;
+    case stdAc::swingv_t::kOff:
+      doc["ac_swingv"] = "Off";
+      break;
+    
+    default:
+      doc["ac_swingv"] = "-UNKNOWN-";
+      break;
+  }
+  // Swing Horizontal status
+  switch (ac.next.swingh)
+  {
+    case stdAc::swingh_t::kAuto:
+      doc["ac_swingh"] = "Auto";
+      break;
+    case stdAc::swingh_t::kLeftMax:
+      doc["ac_swingh"] = "Left Max";
+      break;
+    case stdAc::swingh_t::kLeft:
+      doc["ac_swingh"] = "Left";
+      break;
+    case stdAc::swingh_t::kMiddle:
+      doc["ac_swingh"] = "Middle";
+      break;
+    case stdAc::swingh_t::kRight:
+      doc["ac_swingh"] = "Right";
+      break;
+    case stdAc::swingh_t::kRightMax:
+      doc["ac_swingh"] = "Right Max";
+      break;
+    case stdAc::swingh_t::kWide:
+      doc["ac_swingh"] = "Wide";
+      break;
+    
+    default:
+      doc["ac_swingh"] = "-UNKNOWN-";
+      break;
+  }
+
+  // Other status items
+  if(client.connected()) {
+    doc["mqtt_status_tag"] = "Connected";
+  } else {
+    String error_string = "Error: ";
+    error_string.concat(client.state());
+    doc["mqtt_status_tag"] = error_string.c_str();
+  }
+  doc["mqtt_status_tag_classes"] = client.connected() ? "tag is-success" : "tag is-danger";
+
+  doc["wifi_status_tag"] = WiFi.isConnected() ? "Connected" : "Disconnected";
+  doc["wifi_status_tag_classes"] = WiFi.isConnected() ? "tag is-success" : "tag is-danger";
+
+  serializeJson(doc, *response);
+  request->send(response);
+}
+
+void actFromWeb(AsyncWebServerRequest *request) {
+  // Given that a button was pressed in the Web GUI, act on the value sent.
+  if(request->hasParam("degrees")) {
+    if(request->getParam("degrees")->value() == "1") {
+      ac.next.degrees++;
+      request->send(200, "OK");
+      return;
+    } else {
+      ac.next.degrees--;
+      request->send(200, "OK");
+      return;
+    }
+  }
+
+  // Nothing was done.
+  request->send(500, "text/plain", "Unkonwn action");
+}
+
 void setupWebServer() {
   server.serveStatic("/static", LITTLEFS, "/static/");
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(LITTLEFS, "/index.html");
+  });
+
+  server.on("/status", HTTP_GET, [](AsyncWebServerRequest *request){
+    respondCurrentStatus(request);
+  });
+
+  server.on("/set", HTTP_GET, [](AsyncWebServerRequest *request){
+    actFromWeb(request);
   });
 
   server.on("/configure", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -217,4 +426,7 @@ void setup() {
 
 void loop() {
   decodeIR(); // Decode IR if decoding is enabled
+  reconnectToMqtt(); // (Re)connect to MQTT if not already connected
+
+  client.loop(); // Update MQTT
 }
