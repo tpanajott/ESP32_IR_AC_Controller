@@ -7,11 +7,11 @@ function updateValues() {
             $('#' + key).html(val);
         });
 
-        if(data["ac_learning"] == true) {
-            // 0 = Learning is inactive.
+        if(data["ac_learning"] == false) {
+            // false = Learning is inactive.
             $("#learn_from_remote_modal").removeClass("is-active");
-        } else if (data == 1) {
-            // 1 = Learning is active.
+        } else if (data["ac_learning"] == true) {
+            // true = Learning is active.
             $("#learn_from_remote_modal").addClass("is-active");
         }
 
@@ -36,19 +36,11 @@ function updateValues() {
 }
 
 function learnFromRemote() {
-    $.get("/learn/start").done(function() {
-        updateValues();
-    }).fail(function() {
-        alert("Failed to start learning!");
-    });
+    act("ac_learning", 1);
 }
 
 function stopLearningFromRemote() {
-    $.get("/learn/stop").done(function() {
-        updateValues();
-    }).fail(function() {
-        alert("Failed to stop learning!");
-    });
+    act("ac_learning", 0);
 }
 
 function updateStatus() {

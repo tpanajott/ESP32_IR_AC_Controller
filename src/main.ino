@@ -138,11 +138,13 @@ void setupACLibrary() {
 }
 
 void startLearning() {
+  Serial.println("[AC] Start learning process.");
   isLearning = true;
   irrecv.enableIRIn();
 }
 
 void stopLearning() {
+  Serial.println("[AC] Stop learning process.");
   isLearning = false;
   irrecv.disableIRIn();
 }
@@ -552,6 +554,16 @@ void actFromWeb(AsyncWebServerRequest *request) {
       request->send(200, "OK");
       return;
     }
+  } else if(request->hasParam("ac_learning")) {
+    if(request->getParam("ac_learning")->value().toInt() == 0) {
+      stopLearning();
+      request->send(200, "OK");
+      return;
+    } else if(request->getParam("ac_learning")->value().toInt() == 1) {
+      startLearning();
+      request->send(200, "OK");
+      return;
+    }
   }
 
   // Nothing was done.
@@ -589,20 +601,18 @@ void setupWebServer() {
 }
 
 void decodeIR() {
-  if (irrecv.decode(&results)) {
-    // Check if we got an IR message that was to big for our capture buffer.
-    if (results.overflow)
-      Serial.println("[ERROR] Buffer overflow!");
-    
-    // Display the basic output of what we found.
-    Serial.print(resultToHumanReadableBasic(&results));
-    // Display any extra A/C info if we have it.
-    String description = IRAcUtils::resultAcToString(&results);
-    yield();  // Feed the WDT as the text output can take a while to print.
-    // Output the results as source code
-    Serial.println(resultToSourceCode(&results));
-    Serial.println();    // Blank line between entries
-    yield();             // Feed the WDT (again)
+  if(isLearning) {
+    if (irrecv.decode(&results)) {
+      // Check if we got an IR message that was to big for our capture buffer.
+      if (!results.overflow) {
+        // Decode result and save into the standard AC object.
+        IRAcUtils::decodeToState(&results, &ac.next);
+        stopLearning();
+        yield();  // Feed the WDT as the text output can take a while to print.
+      } else {
+        Serial.println("[ERROR] Buffer overflow!");
+      }
+    }
   }
 }
 
