@@ -570,6 +570,35 @@ void actFromWeb(AsyncWebServerRequest *request) {
   request->send(500, "text/plain", "Unkonwn action");
 }
 
+String configurePageProcessor(const String& var) {
+  // Wifi
+  if(var == "wifi_hostname") {
+    return wifiConfig.hostname;
+  } else if (var == "wifi_ssid") {
+    return wifiConfig.ssid;
+  } else if (var == "wifi_psk") {
+    return wifiConfig.psk;
+  }
+
+  // MQTT
+  if(var == "mqtt_server") {
+    return mqttConfig.server;
+  } else if (var == "mqtt_port") {
+    return String(mqttConfig.port);
+  } else if (var == "mqtt_base_topic") {
+    return mqttConfig.base_topic;
+  } else if(var == "mqtt_auth") {
+    return mqttConfig.use_auth ? "checked" : "";
+  } else if(var == "mqtt_username") {
+    return mqttConfig.username;
+  } else if (var == "mqtt_password") {
+    return mqttConfig.password;
+  }
+
+  // Default return
+  return "-MISSING PROCESSOR MAPPING-";
+}
+
 void setupWebServer() {
   server.serveStatic("/static", LITTLEFS, "/static/");
 
@@ -586,7 +615,7 @@ void setupWebServer() {
   });
 
   server.on("/configure", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(LITTLEFS, "/configure.html");
+    request->send(LITTLEFS, "/configure.html", String(), false, configurePageProcessor);
   });
 
   server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
