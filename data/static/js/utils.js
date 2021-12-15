@@ -33,17 +33,6 @@ function updateValues() {
         $("#wifi_status_tag").html("WiFi: UNKNOWN");
         $(".button").prop("disabled", true);
     });
-
-    // Get all other status data
-    // $.getJSON("/status", function(data) {
-    //     $("#mqtt_status_tag").attr("class", data["mqtt_status_tag_classes"]);
-    //     $("#mqtt_status_tag").html(data["mqtt_status_tag_text"]);
-
-    //     $("#wifi_status_tag").attr("class", data["wifi_status_tag_classes"]);
-    //     $("#wifi_status_tag").html(data["wifi_status_tag_text"]);
-
-    //     $("#firmware_version").html(data["firmware_version"]);
-    // });
 }
 
 function learnFromRemote() {

@@ -215,8 +215,8 @@ void respondCurrentStatus(AsyncWebServerRequest *request) {
   doc["ac_turbo"] = ac.next.turbo ? "Turbo" : "Normal";
   doc["ac_econo"] = ac.next.econo ? "Econo" : "Normal";
   doc["ac_light"] = ac.next.light ? "Light" : "Dark";
-  doc["ac_filter"] = ac.next.filter ? "Active" : "Inactive";
-  doc["ac_clean"] = ac.next.clean ? "Active" : "Inactive";
+  doc["ac_filter"] = ac.next.filter ? "Clear" : "Normal";
+  doc["ac_clean"] = ac.next.clean ? "Clear" : "Normal";
   doc["ac_beep"] = ac.next.beep ? "Beep" : "Silent";
   doc["ac_learning"] = isLearning;
 
@@ -304,6 +304,9 @@ void respondCurrentStatus(AsyncWebServerRequest *request) {
   // Swing Horizontal status
   switch (ac.next.swingh)
   {
+    case stdAc::swingh_t::kOff:
+      doc["ac_swingh"] = "Off";
+      break;
     case stdAc::swingh_t::kAuto:
       doc["ac_swingh"] = "Auto";
       break;
@@ -350,13 +353,202 @@ void respondCurrentStatus(AsyncWebServerRequest *request) {
 
 void actFromWeb(AsyncWebServerRequest *request) {
   // Given that a button was pressed in the Web GUI, act on the value sent.
-  if(request->hasParam("degrees")) {
+  if (request->hasParam("mode")) {
+    switch(request->getParam("mode")->value().toInt()) {
+      case -1:
+        ac.next.mode = stdAc::opmode_t::kOff;
+        request->send(200, "OK");
+        return;
+        break;
+      case 0:
+        ac.next.mode = stdAc::opmode_t::kAuto;
+        request->send(200, "OK");
+        return;
+        break;
+      case 1:
+        ac.next.mode = stdAc::opmode_t::kCool;
+        request->send(200, "OK");
+        return;
+        break;
+      case 2:
+        ac.next.mode = stdAc::opmode_t::kHeat;
+        request->send(200, "OK");
+        return;
+        break;
+      case 3:
+        ac.next.mode = stdAc::opmode_t::kDry;
+        request->send(200, "OK");
+        return;
+        break;
+      case 4:
+        ac.next.mode = stdAc::opmode_t::kFan;
+        request->send(200, "OK");
+        return;
+        break;
+    }
+  } else if (request->hasParam("celsius")) {
+    ac.next.celsius = !ac.next.celsius;
+    request->send(200, "OK");
+    return;
+  } else if(request->hasParam("degrees")) {
     if(request->getParam("degrees")->value() == "1") {
       ac.next.degrees++;
       request->send(200, "OK");
       return;
     } else {
       ac.next.degrees--;
+      request->send(200, "OK");
+      return;
+    }
+  } else if (request->hasParam("fanspeed")) {
+    switch(request->getParam("fanspeed")->value().toInt()) {
+      case 0:
+        ac.next.fanspeed = stdAc::fanspeed_t::kAuto;
+        request->send(200, "OK");
+        return;
+        break;
+      case 1:
+        ac.next.fanspeed = stdAc::fanspeed_t::kMin;
+        request->send(200, "OK");
+        return;
+        break;
+      case 2:
+        ac.next.fanspeed = stdAc::fanspeed_t::kLow;
+        request->send(200, "OK");
+        return;
+        break;
+      case 3:
+        ac.next.fanspeed = stdAc::fanspeed_t::kMedium;
+        request->send(200, "OK");
+        return;
+        break;
+      case 4:
+        ac.next.fanspeed = stdAc::fanspeed_t::kHigh;
+        request->send(200, "OK");
+        return;
+        break;
+      case 5:
+        ac.next.fanspeed = stdAc::fanspeed_t::kMax;
+        request->send(200, "OK");
+        return;
+        break;
+    }
+  } else if(request->hasParam("swingv")) {
+    switch(request->getParam("swingv")->value().toInt()) {
+      case -1:
+        ac.next.swingv = stdAc::swingv_t::kOff;
+        request->send(200, "OK");
+        return;
+        break;
+      case 0:
+        ac.next.swingv = stdAc::swingv_t::kAuto;
+        request->send(200, "OK");
+        return;
+        break;
+      case 1:
+        ac.next.swingv = stdAc::swingv_t::kHighest;
+        request->send(200, "OK");
+        return;
+        break;
+      case 2:
+        ac.next.swingv = stdAc::swingv_t::kHigh;
+        request->send(200, "OK");
+        return;
+        break;
+      case 3:
+        ac.next.swingv = stdAc::swingv_t::kMiddle;
+        request->send(200, "OK");
+        return;
+        break;
+      case 4:
+        ac.next.swingv = stdAc::swingv_t::kLow;
+        request->send(200, "OK");
+        return;
+        break;
+      case 5:
+        ac.next.swingv = stdAc::swingv_t::kLowest;
+        request->send(200, "OK");
+        return;
+        break;
+    }
+  } else if (request->hasParam("swingh")) {
+    switch(request->getParam("swingh")->value().toInt()) {
+      case -1:
+        ac.next.swingh = stdAc::swingh_t::kOff;
+        request->send(200, "OK");
+        return;
+        break;
+      case 0:
+        ac.next.swingh = stdAc::swingh_t::kAuto;
+        request->send(200, "OK");
+        return;
+        break;
+      case 1:
+        ac.next.swingh = stdAc::swingh_t::kLeftMax;
+        request->send(200, "OK");
+        return;
+        break;
+      case 2:
+        ac.next.swingh = stdAc::swingh_t::kLeft;
+        request->send(200, "OK");
+        return;
+        break;
+      case 3:
+        ac.next.swingh = stdAc::swingh_t::kMiddle;
+        request->send(200, "OK");
+        return;
+        break;
+      case 4:
+        ac.next.swingh = stdAc::swingh_t::kRight;
+        request->send(200, "OK");
+        return;
+        break;
+      case 5:
+        ac.next.swingh = stdAc::swingh_t::kRightMax;
+        request->send(200, "OK");
+        return;
+        break;
+      case 6:
+        ac.next.swingh = stdAc::swingh_t::kWide;
+        request->send(200, "OK");
+        return;
+        break;
+    }
+  } else if(request->hasParam("light")) {
+    ac.next.light = !ac.next.light;
+    request->send(200, "OK");
+    return;
+  }else if(request->hasParam("beep")) {
+    ac.next.beep = !ac.next.beep;
+    request->send(200, "OK");
+    return;
+  }else if(request->hasParam("econo")) {
+    ac.next.econo = !ac.next.econo;
+    request->send(200, "OK");
+    return;
+  }else if(request->hasParam("filter")) {
+    ac.next.filter = !ac.next.filter;
+    request->send(200, "OK");
+    return;
+  }else if(request->hasParam("turbo")) {
+    ac.next.turbo = !ac.next.turbo;
+    request->send(200, "OK");
+    return;
+  }else if(request->hasParam("quiet")) {
+    ac.next.quiet = !ac.next.quiet;
+    request->send(200, "OK");
+    return;
+  }else if(request->hasParam("clean")) {
+    ac.next.clean = !ac.next.clean;
+    request->send(200, "OK");
+    return;
+  }else if(request->hasParam("power")) {
+    if(request->getParam("power")->value().toInt() == 0) {
+      ac.next.power = false;
+      request->send(200, "OK");
+      return;
+    } else if(request->getParam("power")->value().toInt() == 1) {
+      ac.next.power = true;
       request->send(200, "OK");
       return;
     }
