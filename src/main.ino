@@ -64,10 +64,15 @@ struct MQTTConfig {
   int port;
 };
 
+struct GeneralConfig {
+  int version_id;
+};
+
 // Create "instances" of structs to store config values read at startup.
 ACConfig acConfig;
 WiFiConfig wifiConfig;
 MQTTConfig mqttConfig;
+GeneralConfig generalConfig;
 
 bool initLittleFS() {
   if(!LITTLEFS.begin(false)){
@@ -95,6 +100,9 @@ void loadConfigFromLittleFS() {
   
   // We have now read the file. Close it.
   file.close();
+
+  // Read general config variables
+  generalConfig.version_id = doc["general_version_id"] | -1;
   
   // Read values for WiFi
   strlcpy(wifiConfig.hostname, doc["wifi_hostname"], sizeof(wifiConfig.hostname));
@@ -207,6 +215,8 @@ void respondCurrentStatus(AsyncWebServerRequest *request) {
   // Respond with current AC status.
   AsyncResponseStream *response = request->beginResponseStream("application/json");
   DynamicJsonDocument doc(1024);
+  // Generic information first
+  doc["current_version_id"] = generalConfig.version_id;
   // Break out all the easy values, more complex values are handled below
   doc["ac_protocol"] = typeToString(ac.next.protocol);
   doc["ac_model"] = ac.next.model;
