@@ -4,7 +4,7 @@ var current_version_id = -1;
 function checkForNewRelease(prerelease) {
     if(prerelease == true) {
         $.ajax({
-            url: "https://api.github.com/repos/Aircoookie/WLED/releases?accept=application/vnd.github.v3+json&per_page=1",
+            url: "https://api.github.com/repos/tpanajott/ESP32_IR_AC_Controller/releases?accept=application/vnd.github.v3+json&per_page=1",
             dataType: 'json',
             async: false,
             success: function(data) {
@@ -16,7 +16,7 @@ function checkForNewRelease(prerelease) {
         });
     } else {
         $.ajax({
-            url: "https://api.github.com/repos/Aircoookie/WLED/releases/latest?accept=application/vnd.github.v3+json",
+            url: "https://api.github.com/repos/tpanajott/ESP32_IR_AC_Controller/releases/latest?accept=application/vnd.github.v3+json",
             dataType: 'json',
             async: false,
             success: function(data) {
